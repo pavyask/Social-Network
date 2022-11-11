@@ -5,11 +5,11 @@ namespace SocialNetwork.Models
     public class User
     {
         [Key]
-        public string Login { get; }
+        public string Login { get; private set; }
 
-        public DateTime CreationDateTime { get; }
+        public DateTime CreationDateTime { get; private set; }
 
-        public IEnumerable<User> Friends { get; }
+        public IEnumerable<User> Friends { get; private set; }
 
 
         public User(string login)
