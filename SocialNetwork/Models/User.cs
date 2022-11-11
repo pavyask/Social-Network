@@ -4,19 +4,29 @@ namespace SocialNetwork.Models
 {
     public class User
     {
+        //public string Id { get; set; }
+
         [Key]
-        public string Login { get; private set; }
+        public string Login { get; set; }
 
-        public DateTime CreationDateTime { get; private set; }
+        public DateTime CreationDateTime { get; set; } = DateTime.Now;
 
-        public IEnumerable<User> Friends { get; private set; }
+        public IEnumerable<User> Friends { get; set; } = new List<User>();
 
+
+        public User()
+        {
+        }
 
         public User(string login)
         {
             Login = login;
-            CreationDateTime = DateTime.Now;
-            Friends = new List<User>();
+        }
+
+        public User(string login, DateTime creationDate)
+        {
+            Login = login;
+            CreationDateTime = creationDate;
         }
     }
 }

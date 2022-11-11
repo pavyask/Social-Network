@@ -3,7 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using SocialNetwork.Data;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<SocialNetworkContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SocialNetworkContext") ?? throw new InvalidOperationException("Connection string 'SocialNetworkContext' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SocialNetworkContext")
+    ?? throw new InvalidOperationException("Connection string 'SocialNetworkContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
