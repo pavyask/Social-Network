@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging;
 using SocialNetwork.Data;
 using SocialNetwork.Models;
 
@@ -12,35 +13,19 @@ namespace SocialNetwork.Controllers
 {
     public class UsersController : Controller
     {
-        private readonly SocialNetworkContext _context;
+        //private readonly SocialNetworkContext _context;
+        private static readonly SocialNetworkData _context = new SocialNetworkData();
 
-        public UsersController(SocialNetworkContext context)
+        public UsersController(/*SocialNetworkContext context*/)
         {
-            _context = context;
+            //// constructor called every time when new view is returned?
+            //_context = context;
         }
 
         // GET: Users
-        public async Task<IActionResult> List()
+        public IActionResult List()
         {
-              return View(await _context.User.ToListAsync());
-        }
-
-        // GET: Users/Details/5
-        public async Task<IActionResult> Details(string login)
-        {
-            if (login == null || _context.User == null)
-            {
-                return NotFound();
-            }
-
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.Login == login);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return View(user);
+            return View(_context.User.ToList());
         }
 
         // GET: Users/Create
@@ -54,78 +39,25 @@ namespace SocialNetwork.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Login,CreationDateTime")] User user)
+        public IActionResult Create([Bind("Login,CreationDateTime")] User user)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(List));
-            }
-            return View(user);
-        }
-
-        // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(string login)
-        {
-            if (login == null || _context.User == null)
-            {
-                return NotFound();
-            }
-
-            var user = await _context.User.FindAsync(login);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return View(user);
-        }
-
-        // POST: Users/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string login, [Bind("Login,CreationDateTime")] User user)
-        {
-            if (login != user.Login)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.Login))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                _context.User.Add(user);
                 return RedirectToAction(nameof(List));
             }
             return View(user);
         }
 
         // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(string login)
+        public IActionResult Delete(string login)
         {
             if (login == null || _context.User == null)
             {
                 return NotFound();
             }
 
-            var user = await _context.User
-                .FirstOrDefaultAsync(m => m.Login == login);
+            var user = _context.User.FirstOrDefault(m => m.Login == login);
             if (user == null)
             {
                 return NotFound();
@@ -137,25 +69,69 @@ namespace SocialNetwork.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string login)
+        public IActionResult DeleteConfirmed(string login)
         {
             if (_context.User == null)
             {
                 return Problem("Entity set 'SocialNetworkContext.User'  is null.");
             }
-            var user = await _context.User.FindAsync(login);
+            var user = _context.User.FirstOrDefault(user => user.Login == login);
             if (user != null)
             {
                 _context.User.Remove(user);
             }
-            
-            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(List));
         }
 
+
+        public IActionResult Init()
+        {
+            return View();
+        }
+
+        [HttpPost, ActionName("Init")]
+        public IActionResult InitConfirmed()
+        {
+            var users = new List<User>{
+                new User("John", DateTime.Now.AddDays(-1)),
+                new User("Alice", DateTime.Now.AddDays(-2)),
+                new User("Bob", DateTime.Now.AddDays(-3)),
+                new User("Sam", DateTime.Now.AddDays(-4)),
+                new User("Mia", DateTime.Now.AddDays(-5)),
+                new User("Zoe", DateTime.Now.AddDays(-6)),
+            };
+
+            users[0].Friends.Add(users[1]);
+            users[1].Friends.Add(users[0]); users[1].Friends.Add(users[2]);
+            users[2].Friends.Add(users[1]); users[2].Friends.Add(users[3]); users[2].Friends.Add(users[4]);
+            users[3].Friends.Add(users[2]);
+            users[4].Friends.Add(users[3]); users[4].Friends.Add(users[5]);
+            users[5].Friends.Add(users[4]); users[5].Friends.Add(users[0]); users[5].Friends.Add(users[1]);
+
+            _context.User.AddRange(users);
+            return RedirectToAction(nameof(List));
+        }
+
+        public IActionResult Clear()
+        {
+            return View();
+        }
+
+        [HttpPost, ActionName("Clear")]
+        public IActionResult ClearConfirmed()
+        {
+            (_context.User as List<User>)!.RemoveAll(user => user.Login != "admin");
+            return RedirectToAction(nameof(List));
+        }
+
+
         private bool UserExists(string login)
         {
-          return _context.User.Any(e => e.Login == login);
+            return _context.User.Any(e => e.Login == login);
         }
+
+
+
     }
 }
