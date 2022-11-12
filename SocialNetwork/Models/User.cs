@@ -9,6 +9,7 @@ namespace SocialNetwork.Models
         [Key]
         public string Login { get; set; }
 
+        [Display(Name = "Creation Date & Time")]
         public DateTime CreationDateTime { get; set; } = DateTime.Now;
 
         public IEnumerable<User> Friends { get; set; } = new List<User>();

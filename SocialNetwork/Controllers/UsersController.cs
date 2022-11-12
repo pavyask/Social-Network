@@ -20,21 +20,21 @@ namespace SocialNetwork.Controllers
         }
 
         // GET: Users
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> List()
         {
               return View(await _context.User.ToListAsync());
         }
 
         // GET: Users/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(string login)
         {
-            if (id == null || _context.User == null)
+            if (login == null || _context.User == null)
             {
                 return NotFound();
             }
 
             var user = await _context.User
-                .FirstOrDefaultAsync(m => m.Login == id);
+                .FirstOrDefaultAsync(m => m.Login == login);
             if (user == null)
             {
                 return NotFound();
@@ -60,20 +60,20 @@ namespace SocialNetwork.Controllers
             {
                 _context.Add(user);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(List));
             }
             return View(user);
         }
 
         // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string login)
         {
-            if (id == null || _context.User == null)
+            if (login == null || _context.User == null)
             {
                 return NotFound();
             }
 
-            var user = await _context.User.FindAsync(id);
+            var user = await _context.User.FindAsync(login);
             if (user == null)
             {
                 return NotFound();
@@ -86,9 +86,9 @@ namespace SocialNetwork.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Login,CreationDateTime")] User user)
+        public async Task<IActionResult> Edit(string login, [Bind("Login,CreationDateTime")] User user)
         {
-            if (id != user.Login)
+            if (login != user.Login)
             {
                 return NotFound();
             }
@@ -111,21 +111,21 @@ namespace SocialNetwork.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(List));
             }
             return View(user);
         }
 
         // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string login)
         {
-            if (id == null || _context.User == null)
+            if (login == null || _context.User == null)
             {
                 return NotFound();
             }
 
             var user = await _context.User
-                .FirstOrDefaultAsync(m => m.Login == id);
+                .FirstOrDefaultAsync(m => m.Login == login);
             if (user == null)
             {
                 return NotFound();
@@ -137,25 +137,25 @@ namespace SocialNetwork.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        public async Task<IActionResult> DeleteConfirmed(string login)
         {
             if (_context.User == null)
             {
                 return Problem("Entity set 'SocialNetworkContext.User'  is null.");
             }
-            var user = await _context.User.FindAsync(id);
+            var user = await _context.User.FindAsync(login);
             if (user != null)
             {
                 _context.User.Remove(user);
             }
             
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(List));
         }
 
-        private bool UserExists(string id)
+        private bool UserExists(string login)
         {
-          return _context.User.Any(e => e.Login == id);
+          return _context.User.Any(e => e.Login == login);
         }
     }
 }
