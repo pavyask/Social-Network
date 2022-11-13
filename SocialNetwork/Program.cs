@@ -7,7 +7,21 @@ var builder = WebApplication.CreateBuilder(args);
 //    ?? throw new InvalidOperationException("Connection string 'SocialNetworkContext' not found.")));
 
 // Add services to the container.
-builder.Services.AddControllersWithViews(); 
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(10);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.Configure<CookiePolicyOptions>(
+ options => {
+     options.CheckConsentNeeded = context => false;
+     options.MinimumSameSitePolicy = SameSiteMode.None;
+ });
+
 
 var app = builder.Build();
 
@@ -25,6 +39,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",

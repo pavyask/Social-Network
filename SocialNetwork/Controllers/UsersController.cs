@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using NuGet.Packaging;
+using NuGet.Protocol.Plugins;
 using SocialNetwork.Data;
 using SocialNetwork.Models;
 
@@ -82,6 +84,34 @@ namespace SocialNetwork.Controllers
             }
 
             return RedirectToAction(nameof(List));
+        }
+
+        // POST: Users/Login
+        [HttpPost]
+        public IActionResult Login(string login)
+        {
+            if (ModelState.IsValid)
+            {
+                if (_context.User == null)
+                {
+                    return Problem("Entity set 'SocialNetworkContext.User'  is null.");
+                }
+                var user = _context.User.FirstOrDefault(user => user.Login == login);
+                if (user != null)
+                {
+                    Response.Cookies.Append("login", login);
+                }
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
+        // POST: Users/Logout
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            if (Request.Cookies["login"] != null)
+                Response.Cookies.Delete("login");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
