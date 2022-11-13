@@ -15,6 +15,8 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Login)
         </dd>
+    </dl>
+    <dl class="row">
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.CreationDateTime)
         </dt>
@@ -22,7 +24,7 @@
             @Html.DisplayFor(model => model.CreationDateTime)
         </dd>
     </dl>
-    
+
     <form asp-action="Delete">
         <input type="hidden" asp-for="Login" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |

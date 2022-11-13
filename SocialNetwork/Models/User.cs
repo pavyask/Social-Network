@@ -5,7 +5,7 @@ namespace SocialNetwork.Models
 {
     public class User
     {
-        public string? Login { get; set; }
+        public string Login { get; set; }
 
         [Display(Name = "Creation Date & Time")]
         public DateTime CreationDateTime { get; set; } = DateTime.Now;
@@ -14,7 +14,6 @@ namespace SocialNetwork.Models
 
         public User()
         {
-
         }
 
         public User(string login)

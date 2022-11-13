@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 //    ?? throw new InvalidOperationException("Connection string 'SocialNetworkContext' not found.")));
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(); 
 
 var app = builder.Build();
 

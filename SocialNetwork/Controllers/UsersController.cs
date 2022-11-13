@@ -84,14 +84,8 @@ namespace SocialNetwork.Controllers
             return RedirectToAction(nameof(List));
         }
 
-
+        [HttpPost]
         public IActionResult Init()
-        {
-            return View();
-        }
-
-        [HttpPost, ActionName("Init")]
-        public IActionResult InitConfirmed()
         {
             var users = new List<User>{
                 new User("John", DateTime.Now.AddDays(-1)),
@@ -113,13 +107,8 @@ namespace SocialNetwork.Controllers
             return RedirectToAction(nameof(List));
         }
 
+        [HttpPost]
         public IActionResult Clear()
-        {
-            return View();
-        }
-
-        [HttpPost, ActionName("Clear")]
-        public IActionResult ClearConfirmed()
         {
             (_context.User as List<User>)!.RemoveAll(user => user.Login != "admin");
             return RedirectToAction(nameof(List));
@@ -130,8 +119,5 @@ namespace SocialNetwork.Controllers
         {
             return _context.User.Any(e => e.Login == login);
         }
-
-
-
     }
 }

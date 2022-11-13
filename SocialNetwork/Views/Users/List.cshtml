@@ -7,7 +7,13 @@
 <h1>User List</h1>
 
 <p>
-    <a asp-action="Create">Create New User</a>
+    <a asp-action="Create">Create New User</a><br />
+    <form asp-action="Init">
+        <input type="submit" value="Init Data" class="btn btn-primary" />
+    </form><br />
+    <form asp-action="Clear">
+        <input type="submit" value="Clear Data" class="btn btn-danger" />
+    </form>
 </p>
 <table class="table">
     <thead>
@@ -31,7 +37,7 @@
                     @Html.DisplayFor(modelItem => item.CreationDateTime)
                 </td>
                 <td>
-                    <a asp-action="Delete" asp-route-login="@item.Login">Delete</a>
+                    <a form asp-action="Delete" asp-route-login="@item.Login">Delete</a>
                 </td>
             </tr>
         }
