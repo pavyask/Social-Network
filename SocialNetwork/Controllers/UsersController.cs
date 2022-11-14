@@ -27,13 +27,17 @@ namespace SocialNetwork.Controllers
         // GET: Users
         public IActionResult List()
         {
-            return View(_context.User.ToList());
+            if (IsCurentUserAdmin())
+                return View(_context.User.ToList());
+            else return NotFound();
         }
 
         // GET: Users/Create
         public IActionResult Create()
         {
-            return View();
+            if (IsCurentUserAdmin())
+                return View();
+            else return NotFound();
         }
 
         // POST: Users/Create
@@ -43,29 +47,34 @@ namespace SocialNetwork.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind("Login,CreationDateTime")] User user)
         {
-            if (ModelState.IsValid)
+            if (IsCurentUserAdmin())
             {
-                _context.User.Add(user);
-                return RedirectToAction(nameof(List));
+                if (ModelState.IsValid)
+                {
+                    _context.User.Add(user);
+                    return RedirectToAction(nameof(List));
+                }
+                return View(user);
             }
-            return View(user);
+            else return NotFound();
+
         }
 
         // GET: Users/Delete/5
         public IActionResult Delete(string login)
         {
-            if (login == null || _context.User == null)
+            if (IsCurentUserAdmin())
             {
-                return NotFound();
-            }
+                if (login == null || _context.User == null)
+                    return NotFound();
 
-            var user = _context.User.FirstOrDefault(m => m.Login == login);
-            if (user == null)
-            {
-                return NotFound();
-            }
+                var user = _context.User.FirstOrDefault(m => m.Login == login);
+                if (user == null)
+                    return NotFound();
 
-            return View(user);
+                return View(user);
+            }
+            else return NotFound();
         }
 
         // POST: Users/Delete/5
@@ -73,17 +82,19 @@ namespace SocialNetwork.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(string login)
         {
-            if (_context.User == null)
+            if (IsCurentUserAdmin())
             {
-                return Problem("Entity set 'SocialNetworkContext.User'  is null.");
-            }
-            var user = _context.User.FirstOrDefault(user => user.Login == login);
-            if (user != null)
-            {
-                _context.User.Remove(user);
-            }
+                if (_context.User == null)
+                    return Problem("Entity set 'SocialNetworkContext.User'  is null.");
 
-            return RedirectToAction(nameof(List));
+                var user = _context.User.FirstOrDefault(user => user.Login == login);
+                if (user != null)
+                    _context.User.Remove(user);
+
+                return RedirectToAction(nameof(List));
+            }
+            else return NotFound();
+
         }
 
         // POST: Users/Login
@@ -148,6 +159,15 @@ namespace SocialNetwork.Controllers
         private bool UserExists(string login)
         {
             return _context.User.Any(e => e.Login == login);
+        }
+
+        private bool IsCurentUserAdmin()
+        {
+            if (Request.Cookies.TryGetValue("login", out string? login))
+            {
+                return login == "admin";
+            }
+            else return false;
         }
     }
 }
