@@ -29,6 +29,7 @@ namespace SocialNetwork.Controllers
         {
             if (IsCurentUserAdmin())
                 return View(_context.User.ToList());
+
             else return NotFound();
         }
 
@@ -37,12 +38,11 @@ namespace SocialNetwork.Controllers
         {
             if (IsCurentUserAdmin())
                 return View();
+
             else return NotFound();
         }
 
         // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind("Login,CreationDateTime")] User user)
@@ -57,7 +57,6 @@ namespace SocialNetwork.Controllers
                 return View(user);
             }
             else return NotFound();
-
         }
 
         // GET: Users/Delete/5
@@ -84,49 +83,46 @@ namespace SocialNetwork.Controllers
         {
             if (IsCurentUserAdmin())
             {
-                if (_context.User == null)
-                    return Problem("Entity set 'SocialNetworkContext.User'  is null.");
-
                 var user = _context.User.FirstOrDefault(user => user.Login == login);
                 if (user != null)
+                {
                     _context.User.Remove(user);
-
-                if (user != null && user.Login == Request.Cookies["login"])
-                    return Logout();
-
-                else
-                    return RedirectToAction(nameof(List));
+                    if (user.Login == Request.Cookies["login"])
+                        return Logout();
+                }
+                return RedirectToAction(nameof(List));
             }
             else return NotFound();
-
         }
 
         // POST: Users/Login
         [HttpPost]
         public IActionResult Login(string login)
         {
-            if (ModelState.IsValid)
+            if (!IsUserLoggedIn())
             {
-                if (_context.User == null)
-                {
-                    return Problem("Entity set 'SocialNetworkContext.User'  is null.");
-                }
                 var user = _context.User.FirstOrDefault(user => user.Login == login);
                 if (user != null)
                 {
                     Response.Cookies.Append("login", login);
+                    return RedirectToAction("Index", "Friends");
                 }
+                return RedirectToAction("Index", "Home");
             }
-            return RedirectToAction("Index", "Home");
+            else return NotFound();
         }
 
         // POST: Users/Logout
         [HttpPost]
         public IActionResult Logout()
         {
-            if (Request.Cookies["login"] != null)
-                Response.Cookies.Delete("login");
-            return RedirectToAction("Index", "Home");
+            if (IsUserLoggedIn())
+            {
+                if (Request.Cookies["login"] != null)
+                    Response.Cookies.Delete("login");
+                return RedirectToAction("Index", "Home");
+            }
+            else return NotFound();
         }
 
         [HttpPost]
@@ -173,5 +169,7 @@ namespace SocialNetwork.Controllers
             }
             else return false;
         }
+
+        private bool IsUserLoggedIn() => Request.Cookies.TryGetValue("login", out _);
     }
 }

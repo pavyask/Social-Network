@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SocialNetwork.Models
 {
@@ -10,6 +10,7 @@ namespace SocialNetwork.Models
         [Display(Name = "Creation Date & Time")]
         public DateTime CreationDateTime { get; set; } = DateTime.Now;
 
+        [JsonIgnore]
         public ICollection<User> Friends { get; set; } = new List<User>();
 
         public User()
