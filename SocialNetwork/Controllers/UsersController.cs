@@ -16,12 +16,12 @@ namespace SocialNetwork.Controllers
     public class UsersController : Controller
     {
         //private readonly SocialNetworkContext _context;
-        private static readonly SocialNetworkData _context = new SocialNetworkData();
+        private readonly SocialNetworkData _context;
 
-        public UsersController(/*SocialNetworkContext context*/)
+        public UsersController(SocialNetworkData context)
         {
             //// constructor called every time when new view is returned?
-            //_context = context;
+            _context = context;
         }
 
         // GET: Users

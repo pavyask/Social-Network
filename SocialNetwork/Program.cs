@@ -6,7 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("SocialNetworkContext")
 //    ?? throw new InvalidOperationException("Connection string 'SocialNetworkContext' not found.")));
 
+
 // Add services to the container.
+builder.Services.AddSingleton(typeof(SocialNetworkData));
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDistributedMemoryCache();
