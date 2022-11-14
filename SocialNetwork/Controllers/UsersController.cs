@@ -91,7 +91,11 @@ namespace SocialNetwork.Controllers
                 if (user != null)
                     _context.User.Remove(user);
 
-                return RedirectToAction(nameof(List));
+                if (user != null && user.Login == Request.Cookies["login"])
+                    return Logout();
+
+                else
+                    return RedirectToAction(nameof(List));
             }
             else return NotFound();
 
