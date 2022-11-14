@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using NuGet.Protocol.Plugins;
 using SocialNetwork.Data;
 using SocialNetwork.Models;
 using System.Linq;
+using System.Text;
 
 namespace SocialNetwork.Controllers
 {
@@ -39,7 +42,7 @@ namespace SocialNetwork.Controllers
         // POST: Friends/Add/{login}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Add(string login)
+        public IActionResult Add(string login)
         {
             var currentUser = GetCurrentUser();
             if (currentUser == null)
@@ -60,7 +63,7 @@ namespace SocialNetwork.Controllers
         // POST: Friends/Delete/{login}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(string login)
+        public IActionResult Delete(string login)
         {
             var currentUser = GetCurrentUser();
             if (currentUser == null)
@@ -74,6 +77,58 @@ namespace SocialNetwork.Controllers
                 currentUser.Friends.Remove(userToDelete);
                 return Json(true);
             }
+        }
+
+        // POST: Friends/Export
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Export()
+        {
+            var currentUser = GetCurrentUser();
+            if (currentUser == null)
+                return NotFound();
+
+            var friendLogins = currentUser.Friends.Select(friend => friend.Login);
+            byte[] bytes;
+
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (TextWriter tw = new StreamWriter(memoryStream))
+            {
+                foreach (var login in friendLogins)
+                    tw.WriteLine(login);
+                tw.Flush();
+                bytes = memoryStream.GetBuffer();
+            }
+
+            return File(bytes, "text/plain", "friends.txt");
+        }
+
+        //POST: Friends/Import
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Import(IFormFile file)
+        {
+            var currentUser = GetCurrentUser();
+            if (currentUser == null)
+                return NotFound();
+
+            if (file != null)
+            {
+                using (TextReader tr = new StreamReader(file.OpenReadStream()))
+                {
+                    var friendLogins = tr.ReadToEnd().Split(Environment.NewLine);
+                    currentUser.Friends.Clear();
+
+                    foreach (var login in friendLogins)
+                    {
+                        var userToImport = _context.User.FirstOrDefault(user => user.Login == login);
+                        if (userToImport != null)
+                            currentUser.Friends.Add(userToImport);
+                    }
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         private User? GetCurrentUser()

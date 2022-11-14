@@ -9,6 +9,13 @@
 <p>
     <a asp-action="List">Get Friend List in JSON</a><br />
 </p>
+<form asp-action="Export">
+    <input type="submit" value="Export Friends" class="btn btn-primary" />
+</form>
+<form asp-action="Import" enctype="multipart/form-data">
+    <input type="submit" value="Import Friends" class="btn btn-primary" />
+    <input type="file" name="file" value="Import From" />
+</form>
 <form asp-action="Add">
     <input type="text" name="login" placeholder="User login..." />
     <input type="submit" value="Add to Friends" class="btn btn-primary" />
@@ -17,6 +24,8 @@
     <input type="text" name="login" placeholder="User login..." />
     <input type="submit" value="Delete from Friends" class="btn btn-danger" />
 </form>
+
+
 
 <table class="table">
     <thead>
@@ -38,6 +47,11 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.CreationDateTime)
+                </td>
+                <td>
+                    <form asp-action="Delete" asp-route-login="@item.Login">
+                        <input type="submit" value="Delete" class="btn btn-danger" />
+                    </form>
                 </td>
             </tr>
         }

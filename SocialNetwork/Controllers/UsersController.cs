@@ -83,11 +83,18 @@ namespace SocialNetwork.Controllers
         {
             if (IsCurentUserAdmin())
             {
-                var user = _context.User.FirstOrDefault(user => user.Login == login);
-                if (user != null)
+                var userToDelete = _context.User.FirstOrDefault(user => user.Login == login);
+                if (userToDelete != null)
                 {
-                    _context.User.Remove(user);
-                    if (user.Login == Request.Cookies["login"])
+                    _context.User.Remove(userToDelete);
+                    foreach (var user in _context.User)
+                    {
+                        var friendToDelete = user.Friends.FirstOrDefault(friend => friend.Login == userToDelete.Login);
+                        if (friendToDelete != null)
+                            user.Friends.Remove(friendToDelete);
+                    }
+
+                    if (userToDelete.Login == Request.Cookies["login"])
                         return Logout();
                 }
                 return RedirectToAction(nameof(List));
