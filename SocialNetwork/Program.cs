@@ -1,6 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SocialNetwork.Data;
+using System.Globalization;
+
 var builder = WebApplication.CreateBuilder(args);
 //builder.Services.AddDbContext<SocialNetworkContext>(options =>
 //    options.UseSqlServer(builder.Configuration.GetConnectionString("SocialNetworkContext")
@@ -8,8 +14,27 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new List<CultureInfo>{
+        new CultureInfo("en"),
+        new CultureInfo("pl"),
+        new CultureInfo("ru")
+    };
+
+    options.DefaultRequestCulture = new RequestCulture(culture: "en", uiCulture: "en");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
+
 builder.Services.AddSingleton(typeof(SocialNetworkData));
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddViewLocalization(opts => opts.ResourcesPath = "Resources");
+
+
+
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -19,7 +44,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 builder.Services.Configure<CookiePolicyOptions>(
- options => {
+ options =>
+ {
      options.CheckConsentNeeded = context => false;
      options.MinimumSameSitePolicy = SameSiteMode.None;
  });
@@ -46,6 +72,7 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.UseSession();
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 app.MapControllerRoute(
     name: "default",

@@ -1,5 +1,11 @@
 ﻿@{
     Context.Request.Cookies.TryGetValue("login", out string? login);
+
+    var requestCultureFeature = Context.Features.Get<IRequestCultureFeature>();
+    var requestCulture = requestCultureFeature.RequestCulture;
+    var cultureItems = LocOptions.Value.SupportedUICultures
+    .Select(c => new SelectListItem { Value = c.Name, Text = c.DisplayName })
+    .ToList();
 }
 
 <!DOCTYPE html>
@@ -15,8 +21,12 @@
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <form asp-controller="Language" asp-action="Change">
+                <select name="culture" asp-for="@requestCultureFeature.RequestCulture.UICulture" asp-items="@cultureItems" onchange="this.form.submit();">
+                </select>
+            </form>
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Social Network</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">@Localizer["Social Network"]</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -29,8 +39,8 @@
                                 <li class="nav-item">
 
                                     <form asp-controller="Users" asp-action="Logout">
-                                        <label>Hello <b>@login</b></label>
-                                        <input type="submit" value="Logout" class="btn btn-danger" />
+                                        <label>@Localizer["Hello"] <b>@login</b></label>
+                                        <input type="submit" value="@Localizer["Logout"]" class="btn btn-danger" />
                                     </form>
                                 </li>
                             }
@@ -39,7 +49,7 @@
                                 <li class="nav-item">
                                     <form asp-controller="Users" asp-action="Login">
                                         <input type="text" name="login" />
-                                        <input type="submit" value="Login" class="btn btn-primary" />
+                                        <input type="submit" value="@Localizer["Login"]" class="btn btn-primary" />
                                     </form>
                                 </li>
                             }
@@ -48,14 +58,14 @@
                                 if (login == "admin")
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="List">Users</a>
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="List">@Localizer["Users"]</a>
                                     </li>
                                 }
                             }
                             if (login != null)
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Friends" asp-action="Index">Friends</a>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Friends" asp-action="Index">@Localizer["Friends"]</a>
                                 </li>
                             }
                         }
@@ -72,7 +82,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2022 - Social Network - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2022 - @Localizer["SocialNetwork"] - <a asp-area="" asp-controller="Home" asp-action="Privacy">@Localizer["Privacy"]</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
