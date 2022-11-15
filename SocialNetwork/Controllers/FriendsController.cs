@@ -11,18 +11,17 @@ namespace SocialNetwork.Controllers
 {
     public class FriendsController : Controller
     {
-        private readonly SocialNetworkData _context;
-
-        public FriendsController(SocialNetworkData context)
+        private readonly SocialNetworkService _service;
+        public FriendsController(SocialNetworkService service)
         {
             //// constructor called every time when new view is returned?
-            _context = context;
+            _service = service;
         }
 
         // GET: Friends
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var user = GetCurrentUser();
+            var user = await GetCurrentUser();
             if (user == null)
                 return NotFound();
 
@@ -30,9 +29,9 @@ namespace SocialNetwork.Controllers
         }
 
         // GET: Friends/List
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
-            var user = GetCurrentUser();
+            var user = await GetCurrentUser();
             if (user == null)
                 return NotFound();
 
@@ -42,19 +41,19 @@ namespace SocialNetwork.Controllers
         // POST: Friends/Add/{login}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Add(string login)
+        public async Task<IActionResult> Add(string login)
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = await GetCurrentUser();
             if (currentUser == null)
                 return NotFound();
 
-            var userToAdd = _context.User.FirstOrDefault(user => user.Login == login);
+            var userToAdd = await _service.GetUserByLoginOrNull(login);
             if (userToAdd == null || userToAdd.Login == currentUser.Login)
                 return Json(false);
             else
             {
-                if (currentUser.Friends.FirstOrDefault(user => user.Login == userToAdd.Login) == null)
-                    currentUser.Friends.Add(userToAdd);
+                if (currentUser.IsUserFriend(userToAdd))
+                    currentUser.AddFriend(userToAdd);
 
                 return Json(true);
             }
@@ -63,18 +62,18 @@ namespace SocialNetwork.Controllers
         // POST: Friends/Delete/{login}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Delete(string login)
+        public async Task<IActionResult> Delete(string login)
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = await GetCurrentUser();
             if (currentUser == null)
                 return NotFound();
 
-            var userToDelete = currentUser.Friends.FirstOrDefault(user => user.Login == login);
-            if (userToDelete == null)
+            var friendToDelete = currentUser.GetFriendByLogin(login);
+            if (friendToDelete == null)
                 return Json(false);
             else
             {
-                currentUser.Friends.Remove(userToDelete);
+                currentUser.RemoveFriend(friendToDelete);
                 return Json(true);
             }
         }
@@ -82,13 +81,13 @@ namespace SocialNetwork.Controllers
         // POST: Friends/Export
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Export()
+        public async Task<IActionResult> Export()
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = await GetCurrentUser();
             if (currentUser == null)
                 return NotFound();
 
-            var friendLogins = currentUser.Friends.Select(friend => friend.Login);
+            var friendLogins = currentUser.GetFriendLogins();
             byte[] bytes;
 
             using (MemoryStream memoryStream = new MemoryStream())
@@ -106,9 +105,9 @@ namespace SocialNetwork.Controllers
         //POST: Friends/Import
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Import(IFormFile file)
+        public async Task<IActionResult> Import(IFormFile file)
         {
-            var currentUser = GetCurrentUser();
+            var currentUser = await GetCurrentUser();
             if (currentUser == null)
                 return NotFound();
 
@@ -121,9 +120,9 @@ namespace SocialNetwork.Controllers
 
                     foreach (var login in friendLogins)
                     {
-                        var userToImport = _context.User.FirstOrDefault(user => user.Login == login);
+                        var userToImport = await _service.GetUserByLoginOrNull(login);
                         if (userToImport != null)
-                            currentUser.Friends.Add(userToImport);
+                            currentUser.AddFriend(userToImport);
                     }
                 }
             }
@@ -131,10 +130,10 @@ namespace SocialNetwork.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private User? GetCurrentUser()
+        private async Task<User?> GetCurrentUser()
         {
             if (Request.Cookies.TryGetValue("login", out string? login))
-                return _context.User.FirstOrDefault(user => user.Login == login);
+                return await _service.GetUserByLoginOrNull(login);
 
             else return null;
         }

@@ -15,20 +15,18 @@ namespace SocialNetwork.Controllers
 {
     public class UsersController : Controller
     {
-        //private readonly SocialNetworkContext _context;
-        private readonly SocialNetworkData _context;
+        private readonly SocialNetworkService _service;
 
-        public UsersController(SocialNetworkData context)
+        public UsersController(SocialNetworkService service)
         {
-            //// constructor called every time when new view is returned?
-            _context = context;
+            _service = service;
         }
 
         // GET: Users
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
             if (IsCurentUserAdmin())
-                return View(_context.User.ToList());
+                return View(await _service.GetAllUsers());
 
             else return NotFound();
         }
@@ -50,24 +48,22 @@ namespace SocialNetwork.Controllers
             if (IsCurentUserAdmin())
             {
                 if (ModelState.IsValid)
-                {
-                    _context.User.Add(user);
-                    return RedirectToAction(nameof(List));
-                }
+                    _service.CreateUser(user);
+
                 return View(user);
             }
             else return NotFound();
         }
 
         // GET: Users/Delete/5
-        public IActionResult Delete(string login)
+        public async Task<IActionResult> Delete(string login)
         {
             if (IsCurentUserAdmin())
             {
-                if (login == null || _context.User == null)
+                if (login == null)
                     return NotFound();
 
-                var user = _context.User.FirstOrDefault(m => m.Login == login);
+                var user = await _service.GetUserByLoginOrNull(login);
                 if (user == null)
                     return NotFound();
 
@@ -79,21 +75,14 @@ namespace SocialNetwork.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(string login)
+        public async Task<IActionResult> DeleteConfirmed(string login)
         {
             if (IsCurentUserAdmin())
             {
-                var userToDelete = _context.User.FirstOrDefault(user => user.Login == login);
+                var userToDelete = await _service.GetUserByLoginOrNull(login);
                 if (userToDelete != null)
                 {
-                    _context.User.Remove(userToDelete);
-                    foreach (var user in _context.User)
-                    {
-                        var friendToDelete = user.Friends.FirstOrDefault(friend => friend.Login == userToDelete.Login);
-                        if (friendToDelete != null)
-                            user.Friends.Remove(friendToDelete);
-                    }
-
+                    _service.RemoveUser(userToDelete);
                     if (userToDelete.Login == Request.Cookies["login"])
                         return Logout();
                 }
@@ -108,7 +97,7 @@ namespace SocialNetwork.Controllers
         {
             if (!IsUserLoggedIn())
             {
-                var user = _context.User.FirstOrDefault(user => user.Login == login);
+                var user = _service.GetUserByLoginOrNull(login);
                 if (user != null)
                 {
                     Response.Cookies.Append("login", login);
@@ -139,33 +128,23 @@ namespace SocialNetwork.Controllers
                 new User("John", DateTime.Now.AddDays(-1)),
                 new User("Alice", DateTime.Now.AddDays(-2)),
                 new User("Bob", DateTime.Now.AddDays(-3)),
-                new User("Sam", DateTime.Now.AddDays(-4)),
-                new User("Mia", DateTime.Now.AddDays(-5)),
-                new User("Zoe", DateTime.Now.AddDays(-6)),
             };
 
-            users[0].Friends.Add(users[1]);
-            users[1].Friends.Add(users[0]); users[1].Friends.Add(users[2]);
-            users[2].Friends.Add(users[1]); users[2].Friends.Add(users[3]); users[2].Friends.Add(users[4]);
-            users[3].Friends.Add(users[2]);
-            users[4].Friends.Add(users[3]); users[4].Friends.Add(users[5]);
-            users[5].Friends.Add(users[4]); users[5].Friends.Add(users[0]); users[5].Friends.Add(users[1]);
 
-            _context.User.AddRange(users);
+            
+            users[0].AddFriend(users[1]);
+            users[1].AddFriend(users[0]); users[1].AddFriend(users[2]);
+            users[2].AddFriend(users[1]); users[2].AddFriend(users[3]);
+
+            _service.CreateUsers(users);
             return RedirectToAction(nameof(List));
         }
 
         [HttpPost]
         public IActionResult Clear()
         {
-            (_context.User as List<User>)!.RemoveAll(user => user.Login != "admin");
+            _service.RemoveAllExceptAdmin();
             return RedirectToAction(nameof(List));
-        }
-
-
-        private bool UserExists(string login)
-        {
-            return _context.User.Any(e => e.Login == login);
         }
 
         private bool IsCurentUserAdmin()

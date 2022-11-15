@@ -5,12 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SocialNetwork.Data;
+using SocialNetwork.Models;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
-//builder.Services.AddDbContext<SocialNetworkContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("SocialNetworkContext")
-//    ?? throw new InvalidOperationException("Connection string 'SocialNetworkContext' not found.")));
+builder.Services.AddDbContext<SocialNetworkContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SocialNetworkContext")
+    ?? throw new InvalidOperationException("Connection string 'SocialNetworkContext' not found.")));
 
 
 // Add services to the container.
@@ -30,7 +31,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 
-builder.Services.AddSingleton(typeof(SocialNetworkData));
+builder.Services.AddTransient(typeof(SocialNetworkService));
 builder.Services.AddControllersWithViews().AddViewLocalization(opts => opts.ResourcesPath = "Resources");
 
 

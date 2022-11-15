@@ -43,13 +43,13 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Login)
+                    @Html.DisplayFor(modelItem => item.Friend.Login)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.CreationDateTime)
+                    @Html.DisplayFor(modelItem => item.Friend.CreationDateTime)
                 </td>
                 <td>
-                    <form asp-action="Delete" asp-route-login="@item.Login">
+                    <form asp-action="Delete" asp-route-login="@item.Friend.Login">
                         <input type="submit" value="Delete" class="btn btn-danger" />
                     </form>
                 </td>
